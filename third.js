@@ -1,3 +1,7 @@
+/**
+ * A simple Node.js cluster example with Express and quicksort algorithm and balancing load
+ * Author: @bianel11
+ */
 import os from "os";
 import cluster from "cluster";
 import animals from "./animals.js";

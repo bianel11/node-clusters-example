@@ -1,3 +1,7 @@
+/**
+ * A simple Node.js cluster example with Express, file upload and sharp image processing and balancing load
+ * Author: @bianel11
+ */
 import express from "express";
 import cluster from "node:cluster";
 import os from "node:os";
@@ -17,10 +21,6 @@ function spawnWorker(i) {
     setTimeout(() => {
       resolve(worker);
     }, 1000);
-    // worker.on("message", (text) => {
-    //   console.log(worker)
-    //   resolve(worker);
-    // });
   });
 }
 

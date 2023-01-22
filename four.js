@@ -1,3 +1,7 @@
+/**
+ * A simple Node.js cluster example with Apollo Server and GraphQL
+ * Author: @bianel11
+ */
 import os from "os";
 import express from "express";
 import cluster from "cluster";

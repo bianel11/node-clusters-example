@@ -1,3 +1,7 @@
+/**
+ * A simple Node.js cluster example whith sharp image processing
+ * Author: @bianel11
+ */
 import os from "os";
 import sharp from "sharp";
 import cluster from "node:cluster";
