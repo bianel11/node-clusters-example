@@ -13,18 +13,20 @@ if (cluster.isPrimary) {
 function spawnWorker(i) {
   return new Promise((resolve) => {
     const worker = cluster.fork({ id: i });
-    worker.on("message", (text) => {
+    // debe esperar un segundo para que el proceso se inicie
+    setTimeout(() => {
       resolve(worker);
-    });
+    }, 1000);
+    // worker.on("message", (text) => {
+    //   console.log(worker)
+    //   resolve(worker);
+    // });
   });
 }
 
 async function primaryCode() {
   const app = express();
   const cpuList = os.cpus();
-
-  //   const storage = multer.memoryStorage();
-  //   const upload = multer({ storage: storage });
 
   const workers = await Promise.all(
     [...Array(cpuList.length).keys()].map((i) => spawnWorker(i))
@@ -48,31 +50,25 @@ async function primaryCode() {
       const randomIndex = Math.floor(Math.random() * freeWorkers.length);
       const randomCluster = workers[randomIndex];
       workerOcupados.push(randomIndex);
-
-      // console.log(workerOcupados)
-
+ 
       // Enviar la petición al clúster seleccionado
       const { files } = req;
 
       const buffer = files["file"].data;
       const data = { msg: "request", buffer };
-      // console.log(data)
       randomCluster.send(data);
       // Escuchar la respuesta del clúster
       randomCluster.once("message", (msg) => {
         const newBuffer = Buffer.from(msg.file);
-        // const {   res2 } = msg;
-        // const { status, body } = res;
-        workerOcupados = workerOcupados.filter((item) => item !== randomIndex);
-
         const fileName = "hello_world.png";
         const fileType = "image/png";
+        workerOcupados = workerOcupados.filter((item) => item !== randomIndex);
+
         res.writeHead(200, {
           "Content-Disposition": `attachment; filename="${fileName}"`,
           "Content-Type": fileType,
         });
         res.end(newBuffer);
-        //   res.send(newBuffer);
       });
     } else {
       // response with html form to upload file
@@ -103,47 +99,13 @@ function workerCode() {
     const { msg, buffer } = event;
     if (msg === "request") {
       const newBuffer = Buffer.from(buffer);
-      //   console.log(newBuffer);
-      //   console.log(buffer);
       const img = sharp(newBuffer, { unlimitedMemory: true });
-      //   console.log(img);
       img.grayscale();
       img.resize(20000, 10000);
-      //   console.log(await img.toBuffer());
       process.send({
         msg: `Worker ${process.pid} finished )}`,
         file: await img.toBuffer(),
       });
-      //   img.toFile(`./images/output-${process.pid}.png`, (err, info) => {
-      //     if (err) {
-      //       console.log(err);
-      //     }
-      //     });
-      //   });
-      //   await sharp(buffer.data).grayscale().toFile("test.jpg");
-      //   console.log(img);
-      //   img.toFile(`./images/output-${process.pid}.gif`, (err, info) => {
-      //     if (err) {
-      //       console.log(err);
-      //     }
-      //     process.send({
-      //       msg: `Worker ${process.pid} finished ${JSON.stringify(info)}`,
-      //     });
-      //   });
-      //   img.toBuffer((err, buffer) => {
-      //     if (err) {
-      //       console.log(err);
-      //     }
-      //     process.send({ res: buffer });
-      //   });
-      // Procesar la petición y enviar la respuesta al proceso principal
-      //   const req = msg.req;
-      //   const res = {};
-      //   res.status = 200;
-      //   res.body = "Hello World";
-      //   setTimeout(() => {
-      //     process.send({ res: "response " + process.pid });
-      //   }, 1000);
     }
   });
 }
